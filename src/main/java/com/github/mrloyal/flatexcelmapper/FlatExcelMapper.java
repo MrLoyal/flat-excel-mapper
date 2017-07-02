@@ -1,5 +1,6 @@
 package com.github.mrloyal.flatexcelmapper;
 
+import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 
 import java.io.File;
@@ -29,5 +30,9 @@ public class FlatExcelMapper {
         T object = clazz.newInstance();
 
         return object;
+    }
+
+    public <T extends Object> T readRow(XSSFRow excelRow, Class<T> clazz){
+        return null;
     }
 }
