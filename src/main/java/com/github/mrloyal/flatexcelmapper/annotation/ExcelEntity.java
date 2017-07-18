@@ -8,5 +8,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface ExcelEntity {
-    int dataStartRow();
+    int dataStartRow() default 1;
 }

@@ -10,8 +10,4 @@ import java.lang.annotation.Target;
 public @interface ExcelColumn {
     String name();
     boolean nullable() default false;
-
-    DateSourceType dateSourceType() default DateSourceType.DATE;
-    String datePattern() default "yyyy/MM/dd";
-
 }
