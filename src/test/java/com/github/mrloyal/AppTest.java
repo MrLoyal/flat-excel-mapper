@@ -25,7 +25,7 @@ public class AppTest extends TestCase {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("students: " + students);
+        System.out.println("AppTest::main(): students: " + students);
     }
     /**
      * Create the test case

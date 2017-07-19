@@ -5,6 +5,7 @@ import com.github.mrloyal.flatexcelmapper.annotation.ExcelColumn;
 import com.github.mrloyal.flatexcelmapper.annotation.ExcelDate;
 import com.github.mrloyal.flatexcelmapper.annotation.ExcelEntity;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 /**
@@ -33,8 +34,11 @@ import java.util.Date;
 
 @ExcelEntity(dataStartRow = 5)
 public class Student {
+    private int order;
     private String name;
     private Date birthDate;
+    private LocalDate joinDate;
+    private boolean isGood;
 
     @ExcelColumn(name = "B")
     public String getName() {
@@ -53,5 +57,42 @@ public class Student {
 
     public void setBirthDate(Date birthDate) {
         this.birthDate = birthDate;
+    }
+
+    @ExcelColumn(name = "D")
+    @ExcelDate(type = DateSourceType.DATE)
+    public LocalDate getJoinDate() {
+        return joinDate;
+    }
+
+    public void setJoinDate(LocalDate joinDate) {
+        this.joinDate = joinDate;
+    }
+
+    @ExcelColumn(name = "A", nullable = true)
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
+    }
+
+    @ExcelColumn(name = "E")
+    public boolean isGood() {
+        return isGood;
+    }
+
+    public void setGood(boolean good) {
+        isGood = good;
+    }
+
+    @Override
+    public String toString() {
+        return "Student{" +
+                "order='" + order + '\'' +
+                ", name='" + name + '\'' +
+                ", isGood='" + isGood + '\'' +
+                '}';
     }
 }
