@@ -8,7 +8,7 @@ import com.github.mrloyal.flatexcelmapper.exception.DataTypeNotSupportedExceptio
 import com.github.mrloyal.flatexcelmapper.exception.EmptyCellException;
 import com.github.mrloyal.flatexcelmapper.exception.ExcelMapperException;
 import com.github.mrloyal.flatexcelmapper.exception.InvalidValueException;
-import org.apache.poi.hssf.util.CellReference;
+import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFCell;
