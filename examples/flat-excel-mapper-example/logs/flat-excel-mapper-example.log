@@ -1,0 +1,5 @@
+2026-05-22 07:49:26.579 [main]   INFO  com.github.mrloyal.Main com.github.mrloyal.Main.main(Main.java:18): Reading all students from: files/students.xlsx
+2026-05-22 07:49:26.731 [main]   INFO  com.github.mrloyal.Main com.github.mrloyal.Main.main(Main.java:21): Found 3 student(s):
+2026-05-22 07:49:26.734 [main]   INFO  com.github.mrloyal.Main com.github.mrloyal.Main.main(Main.java:23):   Student{order=1, name='Lorem', birthDate='18/07/2017', joinDate=2025-07-19, isGood=false}
+2026-05-22 07:49:26.734 [main]   INFO  com.github.mrloyal.Main com.github.mrloyal.Main.main(Main.java:23):   Student{order=2, name='Ipsum', birthDate='7/27/18', joinDate=2017-07-19, isGood=true}
+2026-05-22 07:49:26.734 [main]   INFO  com.github.mrloyal.Main com.github.mrloyal.Main.main(Main.java:23):   Student{order=3, name='Haha', birthDate='7/19/17', joinDate=2017-07-19, isGood=false}
