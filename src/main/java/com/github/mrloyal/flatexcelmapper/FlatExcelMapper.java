@@ -9,6 +9,7 @@ import com.github.mrloyal.flatexcelmapper.exception.EmptyCellException;
 import com.github.mrloyal.flatexcelmapper.exception.ExcelMapperException;
 import com.github.mrloyal.flatexcelmapper.exception.InvalidValueException;
 import org.apache.poi.ss.util.CellReference;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFCell;
@@ -22,9 +23,11 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -247,6 +250,122 @@ public class FlatExcelMapper {
             throw new ExcelMapperException(e);
         }
 
+    }
+
+    public <T> void write(List<T> list, XSSFSheet sheet)
+            throws ExcelMapperException, DataTypeNotSupportedException {
+        if (list == null || list.isEmpty()) return;
+
+        Class<?> clazz = list.get(0).getClass();
+        if (!clazz.isAnnotationPresent(ExcelEntity.class)) {
+            throw new ExcelMapperException(
+                    new IllegalArgumentException("Class must be annotated with @ExcelEntity"));
+        }
+
+        int dataStartRow = clazz.getAnnotation(ExcelEntity.class).dataStartRow();
+
+        for (int i = 0; i < list.size(); i++) {
+            XSSFRow row = sheet.createRow(dataStartRow - 1 + i);
+            writeRow(list.get(i), row, sheet.getWorkbook());
+        }
+    }
+
+    public <T> void write(List<T> list, Path path)
+            throws ExcelMapperException, DataTypeNotSupportedException {
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        IOException ioException = null;
+        try {
+            XSSFSheet sheet = workbook.createSheet();
+            write(list, sheet);
+            try (FileOutputStream fos = new FileOutputStream(path.toFile())) {
+                workbook.write(fos);
+            }
+        } catch (IOException e) {
+            ioException = e;
+        } finally {
+            try {
+                workbook.close();
+            } catch (IOException e) {
+                if (ioException == null) ioException = e;
+            }
+        }
+        if (ioException != null) {
+            throw new ExcelMapperException(ioException);
+        }
+    }
+
+    private <T> void writeRow(T obj, XSSFRow row, XSSFWorkbook workbook)
+            throws ExcelMapperException, DataTypeNotSupportedException {
+        for (Method method : obj.getClass().getDeclaredMethods()) {
+            if (!method.isAnnotationPresent(ExcelColumn.class)) continue;
+
+            int colIndex = CellReference.convertColStringToIndex(
+                    method.getAnnotation(ExcelColumn.class).name());
+            XSSFCell cell = row.createCell(colIndex);
+
+            try {
+                Object value = method.invoke(obj);
+                if (method.isAnnotationPresent(ExcelDate.class)) {
+                    writeDateCell(cell, value, method.getAnnotation(ExcelDate.class), workbook);
+                } else {
+                    writePrimitiveCell(cell, value);
+                }
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                throw new ExcelMapperException(e);
+            }
+        }
+    }
+
+    private void writePrimitiveCell(XSSFCell cell, Object value) throws DataTypeNotSupportedException {
+        if (value == null) {
+            cell.setBlank();
+            return;
+        }
+        String typeName = value.getClass().getName();
+        switch (typeName) {
+            case "java.lang.Integer":  cell.setCellValue((Integer) value);  break;
+            case "java.lang.Boolean":  cell.setCellValue((Boolean) value);  break;
+            case "java.lang.Byte":     cell.setCellValue((Byte) value);     break;
+            case "java.lang.String":   cell.setCellValue((String) value);   break;
+            default:
+                throw new DataTypeNotSupportedException(
+                        String.format("Type '%s' is not supported", typeName));
+        }
+    }
+
+    private void writeDateCell(XSSFCell cell, Object value, ExcelDate dateAnn, XSSFWorkbook workbook)
+            throws DataTypeNotSupportedException {
+        if (value == null) {
+            cell.setBlank();
+            return;
+        }
+        String pattern = dateAnn.format();
+        if (dateAnn.type() == DateSourceType.DATE) {
+            Date date;
+            if (value instanceof Date) {
+                date = (Date) value;
+            } else if (value instanceof LocalDate) {
+                date = Date.from(((LocalDate) value).atStartOfDay(ZoneId.systemDefault()).toInstant());
+            } else {
+                throw new DataTypeNotSupportedException(
+                        String.format("Type '%s' is not supported for date cell", value.getClass().getName()));
+            }
+            CellStyle style = workbook.createCellStyle();
+            style.setDataFormat(workbook.createDataFormat().getFormat(pattern));
+            cell.setCellStyle(style);
+            cell.setCellValue(date);
+        } else {
+            String formatted;
+            if (value instanceof Date) {
+                formatted = new SimpleDateFormat(pattern).format((Date) value);
+            } else if (value instanceof LocalDate) {
+                formatted = ((LocalDate) value).format(DateTimeFormatter.ofPattern(pattern));
+            } else {
+                throw new DataTypeNotSupportedException(
+                        String.format("Type '%s' is not supported for date cell", value.getClass().getName()));
+            }
+            cell.setCellValue(formatted);
+        }
     }
 
     private void throwEmptyCellException(XSSFCell cell) throws EmptyCellException{
